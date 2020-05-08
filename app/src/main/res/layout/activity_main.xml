@@ -6,7 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <GridLayout android:layout_height="wrap_content"
+    <com.example.sudokusolver
+        android:id="@+id/sudokuBoardView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/buttonsLayout"
+        />
+
+    <GridLayout
+        android:id="@+id/buttonsLayout"
+        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:rowCount="3"
         android:columnCount="3"
