@@ -16,7 +16,7 @@ class Solver {
         ArrayList<Cell> cells = new ArrayList<>(9 * 9);
 
         for(int i = 0; i < 9 * 9; i++) {
-            cells.add(new Cell(i / 9, i % 9, i % 9));
+            cells.add(new Cell(i / 9, i % 9, 0)); //inicjacja zerami
         }
         board = new Board(9, cells);
 

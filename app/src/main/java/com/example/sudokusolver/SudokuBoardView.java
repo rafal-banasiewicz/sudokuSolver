@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -61,7 +62,9 @@ public class SudokuBoardView extends View{
     private void setTextPaint() {
         textPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         textPaint.setColor(Color.BLACK);
-        textPaint.setTextSize(24F);
+        textPaint.setTextSize(100F);
+        //textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+
 
     }
 
@@ -69,6 +72,7 @@ public class SudokuBoardView extends View{
         cellSizePixels = (float)this.getWidth() / size;
         fillCells(canvas);
         drawLines(canvas);
+        setTextPaint();
         drawText(canvas);
     }
 
@@ -127,15 +131,19 @@ public class SudokuBoardView extends View{
             int row = cell.getRow();
             int col = cell.getCol();
 
-            String valueString = cell.getValue().toString();
+            Integer value = cell.getValue();
 
-            Rect textBounds = new Rect();
-            textPaint.getTextBounds(valueString, 0, valueString.length(), textBounds);
-            float textWidth = textPaint.measureText(valueString);
-            int textHeight = textBounds.height();
+            if(value > 0) {
+                String valueString = value.toString();
 
-            canvas.drawText(valueString, (col * cellSizePixels + cellSizePixels / 2 - textWidth / 2),
-                    (row * cellSizePixels + cellSizePixels / 2 - textHeight / 2), textPaint);
+                Rect textBounds = new Rect();
+                textPaint.getTextBounds(valueString, 0, valueString.length(), textBounds);
+                float textWidth = textPaint.measureText(valueString);
+                int textHeight = textBounds.height();
+
+                canvas.drawText(valueString, (col * cellSizePixels + textWidth / 2 ),
+                        (row * cellSizePixels + textHeight + textHeight / 3), textPaint);
+            }
         }
     }
 
