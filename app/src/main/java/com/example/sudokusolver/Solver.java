@@ -20,7 +20,7 @@ class Solver {
         }
         board = new Board(9, cells);
 
-        selectedCellLiveData.postValue(new Pair(selectedRow, selectedCol)); //podanie informacji o zaznaczonej komórce siatki
+        selectedCellLiveData.postValue(new Pair<>(selectedRow, selectedCol)); //podanie informacji o zaznaczonej komórce siatki
         cellsLiveData.postValue(board.getCells());
     }
 
@@ -34,8 +34,13 @@ class Solver {
     public void updateSelectedCell(Integer row, Integer col) {
         selectedRow = row;
         selectedCol = col;
-        selectedCellLiveData.postValue(new Pair(row,col));
+        selectedCellLiveData.postValue(new Pair<>(row,col));
     }
 
 
+    public void delete() {
+        Cell cell = board.getCell(selectedRow, selectedCol);
+        cell.setValue(0);
+        cellsLiveData.postValue(board.getCells());
+    }
 }

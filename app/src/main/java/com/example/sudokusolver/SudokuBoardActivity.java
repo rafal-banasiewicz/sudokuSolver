@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModelProviders;
 
 import android.os.Bundle;
 import android.util.Pair;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+
 import java.util.ArrayList;
 
 public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoardView.OnTouchListener {
@@ -22,8 +25,16 @@ public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoar
         sudokuBoardView.registerListener(this);
 
         viewModel = ViewModelProviders.of(this).get(SudokuBoardViewModel.class);
-        Solver.selectedCellLiveData.observe(this, this::updateSelectedCellUI);
-        Solver.cellsLiveData.observe(this, this::updateCells);
+        viewModel.solver.selectedCellLiveData.observe(this, this::updateSelectedCellUI);
+        viewModel.solver.cellsLiveData.observe(this, this::updateCells);
+
+        ImageButton deleteImBtn = findViewById(R.id.deleteButton);
+        deleteImBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewModel.solver.delete();
+            }
+        });
 
         //initialize buttons
         Button oneBtn = findViewById(R.id.oneButton);
