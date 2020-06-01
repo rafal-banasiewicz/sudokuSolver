@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">sudokuSolver</string>
+    <string name="board_view">board view</string>
+    <string name="camera_view">camera view</string>
+    <string name="load_image">load image</string>
 </resources>

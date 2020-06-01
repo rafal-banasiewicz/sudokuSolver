@@ -8,9 +8,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import androidx.annotation.Nullable;
-
-
 public class SudokuBoardView extends View{
 
     private int sqrtSize = 3;
