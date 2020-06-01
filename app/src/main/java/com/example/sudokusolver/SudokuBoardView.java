@@ -4,9 +4,12 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.util.ArrayList;
 
 public class SudokuBoardView extends View{
 
@@ -20,17 +23,18 @@ public class SudokuBoardView extends View{
 
     private SudokuBoardView.OnTouchListener listener = null;
 
+    private ArrayList<Cell> cells;
 
     Paint thickLinePaint = new Paint();
     Paint thinLinePaint = new Paint();
     Paint selectedCellPaint = new Paint();
     Paint conflictingCellPaint = new Paint();
+    Paint textPaint = new Paint();
+
 
     public SudokuBoardView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
     }
-
-
 
     private void setThickLinePaint(){
         thickLinePaint.setColor(Color.BLACK);
@@ -53,24 +57,33 @@ public class SudokuBoardView extends View{
         conflictingCellPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         conflictingCellPaint.setColor(Color.parseColor("#efedef"));
     }
+//temporary
+    private void setTextPaint() {
+        textPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        textPaint.setColor(Color.BLACK);
+        textPaint.setTextSize(24F);
+
+    }
 
     public void onDraw(Canvas canvas) {
         cellSizePixels = (float)this.getWidth() / size;
         fillCells(canvas);
         drawLines(canvas);
+        drawText(canvas);
     }
 
+
     private void fillCells(Canvas canvas) {
-        if (selectedRow == -1 || selectedCol == -1) return;
-        for (int r = 0; r <= size; r++){
-            for (int c = 0; c <= size; c++){
-                if (r == selectedRow && c == selectedCol) {
-                    fillCell(canvas, r, c, selectedCellPaint);
-                } else if (r == selectedRow || c == selectedCol) {
-                    fillCell(canvas, r, c, conflictingCellPaint);
-                } else if (r / sqrtSize == selectedRow / sqrtSize && c / sqrtSize == selectedCol / sqrtSize){
-                    fillCell(canvas, r, c, conflictingCellPaint);
-                }
+        for(Cell cell : cells) {
+            int r = cell.getRow();
+            int c = cell.getCol();
+
+            if (r == selectedRow && c == selectedCol) {
+                fillCell(canvas, r, c, selectedCellPaint);
+            } else if (r == selectedRow || c == selectedCol) {
+                fillCell(canvas, r, c, conflictingCellPaint);
+            } else if (r / sqrtSize == selectedRow / sqrtSize && c / sqrtSize == selectedCol / sqrtSize){
+                fillCell(canvas, r, c, conflictingCellPaint);
             }
         }
     }
@@ -105,11 +118,27 @@ public class SudokuBoardView extends View{
                     i * cellSizePixels,
                     paintToUse
             );
-
-
         }
-
     }
+
+    private void drawText(Canvas canvas) {
+        for (Cell cell : cells) {
+
+            int row = cell.getRow();
+            int col = cell.getCol();
+
+            String valueString = cell.getValue().toString();
+
+            Rect textBounds = new Rect();
+            textPaint.getTextBounds(valueString, 0, valueString.length(), textBounds);
+            float textWidth = textPaint.measureText(valueString);
+            int textHeight = textBounds.height();
+
+            canvas.drawText(valueString, (col * cellSizePixels + cellSizePixels / 2 - textWidth / 2),
+                    (row * cellSizePixels + cellSizePixels / 2 - textHeight / 2), textPaint);
+        }
+    }
+
 
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
     {
@@ -139,9 +168,16 @@ public class SudokuBoardView extends View{
         invalidate();
     }
 
+    public void updateCells(ArrayList<Cell> cells) {
+        this.cells = cells;
+        invalidate();
+    }
+
     void registerListener(SudokuBoardView.OnTouchListener listener) {
         this.listener = listener;
     }
+
+
 
     interface OnTouchListener {
         void onCellTouched(Integer row, Integer col);
