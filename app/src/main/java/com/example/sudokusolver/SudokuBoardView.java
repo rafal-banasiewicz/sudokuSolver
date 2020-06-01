@@ -18,6 +18,8 @@ public class SudokuBoardView extends View{
     private int selectedRow = -1;
     private int selectedCol = -1;
 
+    private SudokuBoardView.OnTouchListener listener = null;
+
 
     Paint thickLinePaint = new Paint();
     Paint thinLinePaint = new Paint();
@@ -27,6 +29,8 @@ public class SudokuBoardView extends View{
     public SudokuBoardView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
     }
+
+
 
     private void setThickLinePaint(){
         thickLinePaint.setColor(Color.BLACK);
@@ -124,9 +128,25 @@ public class SudokuBoardView extends View{
     }
 
     private void handleTouchEvent(float x, float y) {
-        selectedRow = (int)(y / cellSizePixels);
-        selectedCol = (int)(x/cellSizePixels);
-        invalidate();
-
+        int possibleSelectedRow = (int)(y / cellSizePixels);
+        int possibleSelectedCol = (int)(x / cellSizePixels);
+        listener.onCellTouched(possibleSelectedRow, possibleSelectedCol);
     }
+
+    void updateSelectedCellUI(Integer row, Integer col) {
+        selectedRow = row;
+        selectedCol = col;
+        invalidate();
+    }
+
+    void registerListener(SudokuBoardView.OnTouchListener listener) {
+        this.listener = listener;
+    }
+
+    interface OnTouchListener {
+        void onCellTouched(Integer row, Integer col);
+    }
+
+
+
 }
