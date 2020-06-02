@@ -43,4 +43,17 @@ class Solver {
         cell.setValue(0);
         cellsLiveData.postValue(board.getCells());
     }
+
+    public void solve() {
+        board.solve();
+        cellsLiveData.postValue(board.getCells());
+    }
+
+    public void clearBoard() {
+        for (Cell cell : board.getCells()) {
+            cell.setValue(0);
+        }
+
+        cellsLiveData.postValue(board.getCells());
+    }
 }

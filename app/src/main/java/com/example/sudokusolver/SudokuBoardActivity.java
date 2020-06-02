@@ -29,10 +29,16 @@ public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoar
         viewModel.solver.cellsLiveData.observe(this, this::updateCells);
 
         ImageButton deleteImBtn = findViewById(R.id.deleteButton);
-        deleteImBtn.setOnClickListener(new View.OnClickListener() {
+        deleteImBtn.setOnClickListener(v -> viewModel.solver.delete());
+
+        Button solveBtn = findViewById(R.id.solveButton);
+        solveBtn.setOnClickListener(v -> viewModel.solver.solve());
+
+        Button clearBoardBtn = findViewById(R.id.clearBoardButton);
+        clearBoardBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewModel.solver.delete();
+                viewModel.solver.clearBoard();
             }
         });
 
