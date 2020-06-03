@@ -2,12 +2,9 @@ package com.example.sudokusolver;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
-import java.util.Queue;
 
-public class Cell {
-
+class Cell {
 
     private Integer mRow;
     private Integer mCol;

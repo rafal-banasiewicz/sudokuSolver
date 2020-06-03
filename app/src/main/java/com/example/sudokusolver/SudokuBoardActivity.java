@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProviders;
 
 import android.os.Bundle;
 import android.util.Pair;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 
@@ -15,6 +14,8 @@ public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoar
 
     private SudokuBoardViewModel viewModel; // przy wyjsciu z activity bądz zmianie orientacji, stan diagramu zostanie niezmieniony
     private ArrayList<Button> buttons = new ArrayList<>();
+
+    static Button solveBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,16 +32,11 @@ public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoar
         ImageButton deleteImBtn = findViewById(R.id.deleteButton);
         deleteImBtn.setOnClickListener(v -> viewModel.solver.delete());
 
-        Button solveBtn = findViewById(R.id.solveButton);
+        solveBtn = findViewById(R.id.solveButton);
         solveBtn.setOnClickListener(v -> viewModel.solver.solve());
 
         Button clearBoardBtn = findViewById(R.id.clearBoardButton);
-        clearBoardBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewModel.solver.clearBoard();
-            }
-        });
+        clearBoardBtn.setOnClickListener(v -> viewModel.solver.clearBoard());
 
         //initialize buttons
         Button oneBtn = findViewById(R.id.oneButton);
@@ -71,8 +67,10 @@ public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoar
 
     private void updateCells(ArrayList<Cell> cells) {
         if(cells == null) return;
+
         SudokuBoardView sudokuBoardView = findViewById(R.id.sudokuBoardView);
         sudokuBoardView.updateCells(cells);
+
     }
 
     private void updateSelectedCellUI(Pair<Integer, Integer> cell) {
@@ -84,5 +82,9 @@ public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoar
     @Override
     public void onCellTouched(Integer row, Integer col) {
         viewModel.solver.updateSelectedCell(row, col);
+    }
+
+    static void setSolveBtn(boolean state) {
+        solveBtn.setEnabled(state);
     }
 }

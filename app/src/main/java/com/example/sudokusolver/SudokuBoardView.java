@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,6 +21,8 @@ public class SudokuBoardView extends View{
     private int selectedRow = -1;
     private int selectedCol = -1;
 
+    private boolean conflict = false;
+
     private SudokuBoardView.OnTouchListener listener = null;
 
     private ArrayList<Cell> cells = new ArrayList<>();
@@ -29,7 +30,8 @@ public class SudokuBoardView extends View{
     Paint thickLinePaint = new Paint();
     Paint thinLinePaint = new Paint();
     Paint selectedCellPaint = new Paint();
-    Paint conflictingCellPaint = new Paint();
+    Paint hintCellPaint = new Paint();
+    Paint conflictedCellPaint = new Paint();
     Paint textPaint = new Paint();
 
 
@@ -54,9 +56,14 @@ public class SudokuBoardView extends View{
         selectedCellPaint.setColor(Color.parseColor("#6ead3a"));
     }
 
-    private void setConflictingCellPaint(){
-        conflictingCellPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-        conflictingCellPaint.setColor(Color.parseColor("#efedef"));
+    private void setHintCellPaint(){
+        hintCellPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        hintCellPaint.setColor(Color.parseColor("#efedef"));
+    }
+
+    private void setConflictedCellPaint(){
+        conflictedCellPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        conflictedCellPaint.setColor(Color.parseColor("#c42112"));
     }
 //temporary
     private void setTextPaint() {
@@ -78,6 +85,7 @@ public class SudokuBoardView extends View{
 
 
     private void fillCells(Canvas canvas) {
+        conflict = false;
         for(Cell cell : cells) {
             int r = cell.getRow();
             int c = cell.getCol();
@@ -85,16 +93,31 @@ public class SudokuBoardView extends View{
             if (r == selectedRow && c == selectedCol) {
                 fillCell(canvas, r, c, selectedCellPaint);
             } else if (r == selectedRow || c == selectedCol) {
-                fillCell(canvas, r, c, conflictingCellPaint);
+                fillCell(canvas, r, c, hintCellPaint);
             } else if (r / sqrtSize == selectedRow / sqrtSize && c / sqrtSize == selectedCol / sqrtSize){
-                fillCell(canvas, r, c, conflictingCellPaint);
+                fillCell(canvas, r, c, hintCellPaint);
+            }
+
+            int value = cell.getValue();
+            for(Cell confCell : cells) {
+                if(value == confCell.getValue() //ta sama liczba
+                        && ((r == confCell.getRow() || c == confCell.getCol()) //w tej samej kolumnie bądz wierszu
+                            || (r / sqrtSize == confCell.getRow() / sqrtSize && c / sqrtSize == confCell.getCol() / sqrtSize)) //w tym samym boxie 3x3
+                        && value != 0 //z pominieciem zer, bo nimi zainicjowane są cell'sy
+                        && !(r == confCell.getRow() && c == confCell.getCol())) { //bez komórki w której aktualnie sie znajdujemy XD
+                    fillCell(canvas, r, c, conflictedCellPaint); //namaluj czerwony
+                    conflict = true;
+                }
             }
         }
+        SudokuBoardActivity.setSolveBtn(!conflict);
+
     }
 
     private void fillCell(Canvas canvas, int r, int c, Paint paint) {
         setSelectedCellPaint();
-        setConflictingCellPaint();
+        setHintCellPaint();
+        setConflictedCellPaint();
         canvas.drawRect(c * cellSizePixels, r * cellSizePixels, (c+1) * cellSizePixels, (r+1) * cellSizePixels, paint);
     }
 
@@ -184,8 +207,6 @@ public class SudokuBoardView extends View{
     void registerListener(SudokuBoardView.OnTouchListener listener) {
         this.listener = listener;
     }
-
-
 
     interface OnTouchListener {
         void onCellTouched(Integer row, Integer col);
