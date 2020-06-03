@@ -4,4 +4,5 @@
     <string name="camera_view">camera view</string>
     <string name="load_image">load image</string>
     <string name="choose_photo">Choose Photo</string>
+    <string name="take_a_photo">Take a Photo</string>
 </resources>
