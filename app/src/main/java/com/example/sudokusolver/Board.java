@@ -14,6 +14,9 @@ public class Board {
     Board(Integer size, ArrayList<Cell> cells) {
         mSize = size;
         mCells = cells;
+
+        mPreviousRows = new Stack<>();
+        mPreviousCols = new Stack<>();
     }
 
     Cell getCell(Integer row, Integer col) {
@@ -27,8 +30,8 @@ public class Board {
 
     //solving utilities
 
-    Stack<Integer> mPreviousRows = new Stack<>();
-    Stack<Integer> mPreviousCols = new Stack<>();
+    Stack<Integer> mPreviousRows;
+    Stack<Integer> mPreviousCols;
 
     public void scanRow(List<Integer> impossibleNumbers, Integer currentRow) {
         Integer numIdx = 0;
@@ -46,7 +49,7 @@ public class Board {
         Integer numIdx = 0;
 
         for(Integer row = 0; row < mSize; row++) {
-            numIdx = mCells.get(row * mSize + currentCol).getValue();
+            numIdx = getCell(row, currentCol).getValue();
 
             if(numIdx >= 1) {
                 impossibleNumbers.set(numIdx - 1, numIdx);
@@ -62,7 +65,7 @@ public class Board {
 
         for (Integer row = startRow; row < startRow + 3; row++) {
             for (Integer col = startCol; col < startCol + 3; col++) {
-                numIdx = mCells.get(row * mSize + col).getValue();
+                numIdx = this.getCell(row, col).getValue();
                 if (numIdx >= 1) impossibleNumbers.set(numIdx - 1, numIdx);
             }
         }
@@ -77,7 +80,7 @@ public class Board {
             candidate++;
         }
 
-        mCells.get(currentRow * mSize + currentCol).setCandidates(candidates);
+        this.getCell(currentRow, currentCol).setCandidates(candidates);
     }
 
     public void findNonCandidates() {
@@ -85,14 +88,14 @@ public class Board {
 
         for (Integer row = 0; row < mSize; row++) {
             for (Integer col = 0; col < mSize; col++) {
-                if (!mCells.get(row * mSize + col).empty()) continue;
+                if (!this.getCell(row, col).empty()) continue;
 
                 nonCandidates.clear();
 
                 for(Integer i = 0; i < mSize; i++) nonCandidates.add(0);
 
-                mCells.get(row * mSize + col).getCandidates().clear();
-                mCells.get(row * mSize + col).resetAttempts();
+                this.getCell(row, col).getCandidates().clear();
+                this.getCell(row, col).resetAttempts();
 
                 this.scanRow(nonCandidates, row);
                 this.scanCol(nonCandidates, col);
@@ -113,8 +116,8 @@ public class Board {
 
             for (Integer row = 0; row < mSize; row++) {
                 for (Integer col = 0; col < mSize; col++) {
-                    if(mCells.get(row * mSize + col).empty() && mCells.get(row * mSize + col).getCandidates().size() == 1) {
-                        mCells.get(row * mSize + col).write();
+                    if(this.getCell(row, col).empty() && this.getCell(row, col).getCandidates().size() == 1) {
+                        this.getCell(row, col).setValue();
                         writedOnce = true;
                     }
                 }
@@ -125,36 +128,37 @@ public class Board {
 
     public boolean collision(Integer currentRow, Integer currentCol, Integer candidate) {
         for (Integer pos = 0; pos < mSize; pos++) {
-            if (candidate.equals(mCells.get(currentRow * mSize + pos).getValue())
-                    || candidate == mCells.get(pos * mSize + currentCol).getValue()) return true;
+            if (candidate.equals(this.getCell(currentRow, pos).getValue())
+                    || candidate == this.getCell(pos, currentCol).getValue()) return true;
         }
         Integer row = (currentRow / 3) * 3;
         Integer col = (currentCol / 3) * 3;
 
         for (Integer r = row; r < row + 3; r++) {
             for (Integer c = col; c < col + 3; c++) {
-                if (candidate.equals(mCells.get(r * mSize + c).getValue())) return true;
+                if (candidate.equals(this.getCell(r, c).getValue())) return true;
             }
         }
         return false;
     }
 
     public Pair<Integer, Integer> comeback(Integer row, Integer col) {
-        Pair<Integer, Integer> pair = new Pair<>(row, col);
+
 
         do {
-            mCells.get(pair.first * mSize + pair.second).resetAttempts();
+            this.getCell(row, col).resetAttempts();
             mPreviousRows.pop();
             mPreviousCols.pop();
 
-            pair = new Pair<>(mPreviousRows.peek(), mPreviousCols.peek());
+            row = mPreviousRows.peek();
+            col = mPreviousCols.peek();
 
-            mCells.get(pair.first * mSize + pair.second).setValue(0);
-            mCells.get(pair.first * mSize + pair.second).nextCandidate();
+            this.getCell(row, col).setValue(0);
+            this.getCell(row, col).nextCandidate();
 
-        } while ( mCells.get(pair.first * mSize + pair.second).candidatesRunOut());
+        } while ( this.getCell(row, col).candidatesRunOut());
 
-        return pair;
+        return new Pair<>(row, col);
     }
 
     public void solve() {
@@ -166,7 +170,7 @@ public class Board {
         for (Integer row = 0; row < mSize;) {
             for ( Integer col = 0; col < mSize;) {
 
-                if(mCells.get(row * mSize + col).empty()) {
+                if(this.getCell(row, col).empty()) {
                     mPreviousRows.push(row);
                     mPreviousCols.push(col);
 
@@ -175,16 +179,16 @@ public class Board {
                         mPreviousCols.pop();
                     }
 
-                    candidate = mCells.get(row * mSize + col).candidate();
+                    candidate = this.getCell(row, col).candidate();
 
-                    while ( collision(row, col, candidate) && !mCells.get(row * mSize + col).candidatesRunOut()) {
-                        mCells.get(row * mSize + col).nextCandidate();
-                        candidate = mCells.get(row * mSize + col).candidate();
-                        mCells.get(row * mSize + col).setAttempt();
+                    while ( collision(row, col, candidate) && !this.getCell(row, col).candidatesRunOut()) {
+                        this.getCell(row, col).nextCandidate();
+                        candidate = this.getCell(row, col).candidate();
+                        this.getCell(row, col).setAttempt();
                     }
 
-                    if (mCells.get(row * mSize + col).candidatesRunOut()) {
-                        Pair<Integer, Integer> pair = new Pair<>(comeback(row, col).first, comeback(row,col).second);
+                    if (this.getCell(row, col).candidatesRunOut()) {
+                        Pair<Integer, Integer> pair = comeback(row, col);
                         row = pair.first;
                         col = pair.second;
                         comedBack = true;
@@ -193,8 +197,8 @@ public class Board {
 
                     comedBack = false;
 
-                    mCells.get(row * mSize + col).setValue(candidate);
-                    mCells.get(row * mSize + col).setAttempt();
+                    this.getCell(row, col).setValue(candidate);
+                    this.getCell(row, col).setAttempt();
                 }
                 col++;
             }

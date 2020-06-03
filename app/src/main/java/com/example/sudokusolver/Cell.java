@@ -18,6 +18,9 @@ public class Cell {
         mCol = col;
         mValue = value;
 
+        mNumberOfAttempts = 0;
+        mCandidates = new ArrayList<>();
+
     }
 
     public void setValue(Integer value) {
@@ -38,9 +41,9 @@ public class Cell {
 
     //solving utilities
     private Integer mNumberOfAttempts;
-    private List<Integer> mCandidates = new ArrayList<>();
+    private List<Integer> mCandidates;
 
-    public void write() {
+    public void setValue() {
         this.mValue = mCandidates.get(0);
     }
 
@@ -62,8 +65,7 @@ public class Cell {
     }
 
     public boolean candidatesRunOut() {
-        if(mNumberOfAttempts == mCandidates.size()) return true;
-        else return false;
+        return mNumberOfAttempts == mCandidates.size();
     }
 
     public void resetAttempts() {
@@ -76,7 +78,6 @@ public class Cell {
 
 
     public boolean empty() {
-        if(mValue == 0) return true;
-        else return false;
+        return mValue == 0;
     }
 }
