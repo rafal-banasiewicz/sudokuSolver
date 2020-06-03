@@ -24,7 +24,7 @@ public class SudokuBoardView extends View{
 
     private SudokuBoardView.OnTouchListener listener = null;
 
-    private ArrayList<Cell> cells;
+    private ArrayList<Cell> cells = new ArrayList<>();
 
     Paint thickLinePaint = new Paint();
     Paint thinLinePaint = new Paint();
