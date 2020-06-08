@@ -1,4 +1,4 @@
-package com.example.sudokusolver;
+package com.bs_rb.sudokusolver;
 import android.util.Pair;
 import androidx.lifecycle.MutableLiveData;
 import java.util.ArrayList;
