@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,11 +33,20 @@ public class SudokuBoardView extends View{
     Paint selectedCellPaint = new Paint();
     Paint hintCellPaint = new Paint();
     Paint conflictedCellPaint = new Paint();
+    Paint selectedConflictedCellPaint = new Paint();
     Paint textPaint = new Paint();
 
 
     public SudokuBoardView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
+
+        setSelectedCellPaint();
+        setHintCellPaint();
+        setConflictedCellPaint();
+        setSelectedConflictedCellPaint();
+
+        setThickLinePaint();
+        setThinLinePaint();
     }
 
     private void setThickLinePaint(){
@@ -65,12 +75,16 @@ public class SudokuBoardView extends View{
         conflictedCellPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         conflictedCellPaint.setColor(Color.parseColor("#c42112"));
     }
-//temporary
+
+    private void setSelectedConflictedCellPaint(){
+        selectedConflictedCellPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        selectedConflictedCellPaint.setColor(Color.parseColor("#e38914"));
+    }
     private void setTextPaint() {
         textPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         textPaint.setColor(Color.BLACK);
         textPaint.setTextSize(100F);
-        //textPaint.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+
 
 
     }
@@ -107,26 +121,26 @@ public class SudokuBoardView extends View{
                         && !(r == confCell.getRow() && c == confCell.getCol())) { //bez komórki w której aktualnie sie znajdujemy XD
                     fillCell(canvas, r, c, conflictedCellPaint); //namaluj czerwony
                     conflict = true;
+
+                    if (r == selectedRow && c == selectedCol) { //na pomarańczowo obecny zaznaczony bledny element
+                        fillCell(canvas, r, c, selectedConflictedCellPaint);
+                    }
                 }
             }
         }
         SudokuBoardActivity.setSolveBtn(!conflict);
-
     }
 
     private void fillCell(Canvas canvas, int r, int c, Paint paint) {
-        setSelectedCellPaint();
-        setHintCellPaint();
-        setConflictedCellPaint();
+
         canvas.drawRect(c * cellSizePixels, r * cellSizePixels, (c+1) * cellSizePixels, (r+1) * cellSizePixels, paint);
     }
 
     private void drawLines (Canvas canvas) {
-        setThickLinePaint();
-        setThinLinePaint();
+
         canvas.drawRect(0F,0F,(float)this.getWidth(),(float)this.getHeight(),thickLinePaint);
         Paint paintToUse;
-        for(int i = 1; i<=size ;i++) {
+        for(int i = 1; i<=size; i++) {
             if( i % sqrtSize == 0) paintToUse = thickLinePaint;
             else paintToUse = thinLinePaint;
 
@@ -157,6 +171,7 @@ public class SudokuBoardView extends View{
             Integer value = cell.getValue();
 
             if(value > 0) {
+
                 String valueString = value.toString();
 
                 Rect textBounds = new Rect();

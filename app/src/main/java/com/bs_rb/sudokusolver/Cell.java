@@ -9,6 +9,7 @@ class Cell {
     private Integer mRow;
     private Integer mCol;
     private Integer mValue;
+    private boolean mFromUser = false;
 
     Cell(Integer row, Integer col, Integer value) {
         mRow = row;
@@ -22,7 +23,10 @@ class Cell {
 
     public void setValue(Integer value) {
         mValue = value;
+        mFromUser = true;
     }
+
+    public boolean isFromUser() { return mFromUser; }
 
     public Integer getRow() {
         return mRow;
