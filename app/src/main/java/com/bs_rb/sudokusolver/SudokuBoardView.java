@@ -177,7 +177,7 @@ public class SudokuBoardView extends View{
                 Rect textBounds = new Rect();
                 textPaint.getTextBounds(valueString, 0, valueString.length(), textBounds);
                 float textWidth = textPaint.measureText(valueString);
-                int textHeight = textBounds.height();
+                float textHeight = textBounds.height();
 
                 canvas.drawText(valueString, (col * cellSizePixels + textWidth / 2 ),
                         (row * cellSizePixels + textHeight + textHeight / 3), textPaint);
