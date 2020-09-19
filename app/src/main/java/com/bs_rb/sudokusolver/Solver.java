@@ -1,5 +1,9 @@
 package com.bs_rb.sudokusolver;
+
+import android.graphics.Point;
 import android.util.Pair;
+
+import androidx.annotation.IntRange;
 import androidx.lifecycle.MutableLiveData;
 import java.util.ArrayList;
 
@@ -21,6 +25,14 @@ class Solver {
         board = new Board(9, cells);
 
         selectedCellLiveData.postValue(new Pair<>(selectedRow, selectedCol)); //podanie informacji o zaznaczonej komórce siatki
+        cellsLiveData.postValue(board.getCells());
+    }
+
+    public void loadNumbersOCR(ArrayList<Integer> numbers) {
+        for(int i = 0; i < 9 * 9; i++) {
+            board.getCells().get(i).setValueOCR(numbers.get(i));
+        }
+
         cellsLiveData.postValue(board.getCells());
     }
 

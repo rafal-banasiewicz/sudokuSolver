@@ -14,8 +14,11 @@ import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Environment;
@@ -36,8 +39,17 @@ import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -56,12 +68,12 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     FloatingActionButton btnCapture, btnOk, btnCancel;
 
-    static {
-        if (!OpenCVLoader.initDebug())
-            Log.d("ERROR", "Unable to load OpenCV");
-        else
-            Log.d("SUCCESS", "OpenCV loaded");
-    }
+    SudokuGrabber sudokuGrabber;
+    Bitmap sudokuBmp;
+    Bitmap galleryBmp = null;
+    DigitRecognizer dr;
+
+
 
 
     @Override
@@ -80,10 +92,46 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         textureView = findViewById(R.id.textureView);
         ivBitmap = findViewById(R.id.ivBitmap);
 
+
         if (allPermissionsGranted()) {
             startCamera();
         } else {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
+        }
+
+        dr = new DigitRecognizer();
+
+        try {
+            dr.loadDigits(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        dr.preapareDigits();
+
+        sudokuGrabber = new SudokuGrabber();
+
+
+        //from gallery
+        if(getIntent().getExtras() != null)
+        {
+            try{
+
+                Bitmap bitmap = BitmapFactory.decodeStream(openFileInput("bitmap"));
+                Mat img = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC3);
+                Utils.bitmapToMat(bitmap, img);
+
+                Mat sudoku = sudokuGrabber.grab(img);
+
+                bitmap = Bitmap.createBitmap(sudoku.cols(), sudoku.rows(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(sudoku, bitmap);
+
+                showAcceptedRejectedButton(true);
+                ivBitmap.setImageBitmap(bitmap);
+                sudokuBmp = bitmap;
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -97,7 +145,6 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         //bind to lifecycle:
         CameraX.bindToLifecycle(this, preview, imageCapture, imageAnalysis);
     }
-
 
     private Preview setPreview() {
 
@@ -135,14 +182,22 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
             @Override
             public void onClick(View v) {
-
-
                 imgCapture.takePicture(new ImageCapture.OnImageCapturedListener() {
                     @Override
                     public void onCaptureSuccess(ImageProxy image, int rotationDegrees) {
+
                         Bitmap bitmap = textureView.getBitmap();
+                        Mat img = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC3);
+                        Utils.bitmapToMat(bitmap, img);
+
+                        Mat sudoku = sudokuGrabber.grab(img);
+
+                        bitmap = Bitmap.createBitmap(sudoku.cols(), sudoku.rows(), Bitmap.Config.ARGB_8888);
+                        Utils.matToBitmap(sudoku, bitmap);
+
                         showAcceptedRejectedButton(true);
                         ivBitmap.setImageBitmap(bitmap);
+                        sudokuBmp = bitmap;
                     }
 
                     @Override
@@ -159,10 +214,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
     private ImageAnalysis setImageAnalysis() {
 
-        // Setup image analysis pipeline that computes average pixel luminance
         HandlerThread analyzerThread = new HandlerThread("OpenCVAnalysis");
         analyzerThread.start();
-
 
         ImageAnalysisConfig imageAnalysisConfig = new ImageAnalysisConfig.Builder()
                 .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
@@ -182,20 +235,17 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                         if(bitmap==null)
                             return;
 
-                        Mat mat = new Mat();
-                        Utils.bitmapToMat(bitmap, mat);
-
-                        Imgproc.cvtColor(mat, mat, currentImageType);
-                        Utils.matToBitmap(mat, bitmap);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                ivBitmap.setImageBitmap(bitmap);
+                                if(sudokuBmp != null)
+                                    ivBitmap.setImageBitmap(sudokuBmp);
+                                else
+                                    ivBitmap.setImageBitmap(bitmap);
                             }
                         });
                     }
                 });
-
 
         return imageAnalysis;
 
@@ -208,6 +258,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
             btnCapture.hide();
             textureView.setVisibility(View.GONE);
         } else {
+            sudokuBmp = null;
             btnCapture.show();
             llBottom.setVisibility(View.GONE);
             textureView.setVisibility(View.VISIBLE);
@@ -276,45 +327,22 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         return true;
     }
 
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//
-//        switch (item.getItemId()) {
-//            case R.id.black_white:
-//                currentImageType = Imgproc.COLOR_RGB2GRAY;
-//                startCamera();
-//                return true;
-//
-//            case R.id.hsv:
-//                currentImageType = Imgproc.COLOR_RGB2HSV;
-//                startCamera();
-//                return true;
-//
-//            case R.id.lab:
-//                currentImageType = Imgproc.COLOR_RGB2Lab;
-//                startCamera();
-//                return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btnReject:
+
                 showAcceptedRejectedButton(false);
                 break;
 
             case R.id.btnAccept:
+                ArrayList num =  sudokuGrabber.read_digits(dr);
 
+                Intent intent = new Intent(this, SudokuBoardActivity.class);
+                intent.putExtra("NUMBERS", num);
+                setResult(2,intent);
+                startActivity(intent);
+                finish();
                 break;
         }
     }

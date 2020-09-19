@@ -25,6 +25,10 @@ class Cell {
         mValue = value;
         mFromUser = true;
     }
+    public void setValueOCR(Integer value) {
+        mValue = value;
+        mFromUser = false;
+    }
 
     public boolean isFromUser() { return mFromUser; }
 

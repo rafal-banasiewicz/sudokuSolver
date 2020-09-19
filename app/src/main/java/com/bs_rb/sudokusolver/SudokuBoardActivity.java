@@ -1,8 +1,10 @@
 package com.bs_rb.sudokusolver;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Pair;
 import android.widget.Button;
@@ -62,6 +64,13 @@ public class SudokuBoardActivity extends AppCompatActivity implements SudokuBoar
         for(int i = 0; i < buttons.size(); i++) {
             int input = i;
             buttons.get(i).setOnClickListener(v -> viewModel.solver.handleInput(input + 1));
+        }
+
+        Intent intent = getIntent();
+
+        if(intent.getExtras() != null) {
+            ArrayList<Integer> num = intent.getIntegerArrayListExtra("NUMBERS");
+            viewModel.solver.loadNumbersOCR(num);
         }
     }
 
